@@ -36,6 +36,7 @@ private:
 	int numberOfOutputs;
 	int numberOfInterNeurons;
 	int networkDimension;
+    int timestep;
 
 	double neuronActivation[MAX_NET_DIMENSION];		// Individual neurons have individual activation levels that are tracked through timesteps an are not visibile as output ( transformed to output by a function)
 	double neuronOutput[MAX_NET_DIMENSION];			// The output of individual neurons, used as inputs to the other neurons in the network throught the connection weights matrix
@@ -48,11 +49,14 @@ private:
 	double networkOutputs[MAX_NET_OUTPUTS];
 	short int  plasticWeightsMask[MAX_NET_DIMENSION*MAX_NET_DIMENSION]; // a filter. Plastic weights are = 1, fixed = 0. THis allows for the specification of some fixed and some plastic weights in the same neuron. This could be a binary array ( type bool) to save space.
     FILE* logFile;
-    FILE* outFile;
+    FILE* motorOutputFile;
 
 	// Functions -------------------------
+
 	bool openLogFile();
+	bool openMotorOutputFile();
 	void closeLogFile();
+	void closeMotorOutputFile();
 
 	void instantiateDefaultNetwork( void );
 	void setNetworkOuput( void );
@@ -60,6 +64,7 @@ private:
 	void copyNetworkInputsToInputNeuronOutputs( void );
 	void thresholdNeuronOutputs( void );
 	//******void squashNeuronOutputs( void );
+	void wilsonBoundNetworkOutputs(void);
 	void squashNeuronOutputs( double offset, double expSlope);
 	void setNeuronOutput( double value );
 	void setNeuronThresholds( double value );
@@ -68,7 +73,7 @@ private:
 	void setPlasticWeightsMask( short int value ); // in general it is good to set this to 1 and let the learning rate determine plasticity.  This is to be used for special cases
 	void setNeuronActivation( double value );
 	void setNetworkOutputs( double value );
-	void wilsonOscillatorActivation(void);
+	void wilsonActivation(void);
 	void networkActivation( void  );
 	void hebbianWeightUpdate( void  );
 	void hebbianExcitatoryWeightUpdate( void );
@@ -85,6 +90,7 @@ private:
 	void readRowFromFile(FILE* fp, double* array, double defaultVal);
 	void readMultipleRowsFromFile(FILE* fp, double* array, double defaultVal);
 public:
+	void wilsonCycleNetwork(void);
 	void cycleNetwork( void );
 	void cycleNetworkSquash(  double offset, double expSlope );
 	void cycleNetworkNormalizeHebbianLearning( void );
@@ -113,7 +119,7 @@ public:
 	int getNumInputs();
 	int getNumOutputs();
 	FILE* getLogFile();
-
+    FILE* getMotorOutputFile();
 	/*
 	 * Update the weight between two neurons to the given value. Neurons are 1-indexed.
 	 */

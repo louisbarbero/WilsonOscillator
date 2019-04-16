@@ -64,11 +64,14 @@ Network::Network(int inputs, int interneurons, int outputs, char * out_file_name
 }
 
 Network::Network(std::string file_name) {
+
 	openLogFile();
+
 	int error = 0;
 
 	error = readNetworkFromFile( file_name );  // This function should return an error message for an improperly specified network.
 //	setNetworkNeuronActivation( 0.0 );
+    timestep=0;
 	if(error == 1)	printf("Bad Network file specification in file %s.\n", file_name.c_str());  // if the file is bad print a warning
 }
 /*
@@ -96,13 +99,29 @@ bool Network::openLogFile()
 	return logFile != NULL;
 }
 
+bool Network::openMotorOutputFile()
+{
+	printf("opening motorOutput file...\n");
+    logFile = fopen("motorOutput.txt", "w");
+	return motorOutputFile != NULL;
+}
+
 void Network::closeLogFile()
 {
 	fclose(logFile);
 }
 
+void Network::closeMotorOutputFile()
+{
+	fclose(motorOutputFile);
+}
+
 FILE* Network::getLogFile() {
 	return logFile;
+}
+
+FILE* Network::getMotorOutputFile() {
+	return motorOutputFile;
 }
 
 void Network::instantiateDefaultNetwork( void )
@@ -208,10 +227,32 @@ void printDifferences(double* beforeMatrix, double* afterMatrix, int dimension) 
   The output neurons oscillate between 0 - 1 to represent two sinusoids out of phase by half a full cycle.
 
   */
-void Network::wilsonOscillatorActivation(void)
+void Network::wilsonCycleNetwork(void)
 {
-    int timestep=0,endtimestep=100;
+    //Uses neuron activation values to start the oscillator at time step 0
+    if(timestep==0){
+        copyNeuronActivationsToNeuronOutputs();
+    }
+
+    //Calculates the recurrent matrix multiplication sums to get the neuron outputs
+    wilsonActivation();
+    //Takes the output neurons and sets them to the network outputs
+    setNetworkOuput();
+    //Bounds the network outputs between 0-1
+    wilsonBoundNetworkOutputs();
+
+    timestep++;
+
+    fprintf(logFile, "%d %.4f %.4f\n", timestep, networkOutputs[0], networkOutputs[1]);
+    cout << setprecision(4);
+    cout << "Timestep:" << timestep;
+    cout << "  Motor A:" <<networkOutputs[0]<< "     " << "Motor B:" <<networkOutputs[1] <<endl;
+
+    /*
+    int endtimestep=100;
 	int neuron_number, source_neuron_number;
+
+    //STEP 1 set activations to input
 
     //use networkDimension - 1 because input neuron isn't needed so turn into a 4x4 to make easier
 	double neuron_outputs[networkDimension-1] ={0,0,0,0};
@@ -229,7 +270,10 @@ void Network::wilsonOscillatorActivation(void)
 		weight_matrix[source_neuron_number-1][neuron_number-1] = networkWeights[computeWeightIndex(source_neuron_number, neuron_number)];
         }
     }
+    closeLogFile();
+    openMotorOutputFile();
     fprintf(logFile, "Time step  Motor A  Motor B\n");
+    //STEP 2
     //Loop for matrix multiplication to set and print output values for motor neurons using previous output values.
 for(timestep; timestep < endtimestep ; timestep++){
 
@@ -242,18 +286,77 @@ for(timestep; timestep < endtimestep ; timestep++){
     for(int i=0; i<networkDimension-1; i++){
         output_array[i]=neuron_outputs[i];
         neuron_outputs[i]=0;
-        }
+        neuronActivation[i+1]=output_array[i];
 
+        }
+        copyNeuronActivationsToNeuronOutputs();
+        for(int i=1; i<networkDimension; i++)
+        cout<<endl<<neuronOutput[i] << " "<< endl;
         // set network outputs
         networkOutputs[0]=output_array[2]+.5;
         networkOutputs[1]=output_array[3]+.5;
+        wilsonFloorNeuronOutputs();
         cout << endl << "Timestep: " << timestep << endl;
         cout << setprecision(4);
         cout << "Motor A:" <<networkOutputs[0]<< "     " << "Motor B:" <<networkOutputs[1] <<endl;
+        wilsonActivation();
         fprintf(logFile, "%d %.4f %.4f\n", timestep, networkOutputs[0], networkOutputs[1]);
         printNetworkOuput();
+        */
+}
 
-}}
+/* --------------------------------------------------
+
+    wilsonActivation
+    Dynamically allocates and array of size networkDimension-1 which is to ignore the input neuron
+    Takes the weight matrix and multiplies it by the output neuron values, which is stored in the neuron_value_array
+    After the summed values are then stored into each respective neuron's output
+
+  */
+
+void Network::wilsonActivation (void){
+    int neuron_number, source_neuron_number;
+
+    double * neuron_value_array= new double [networkDimension-1];
+
+    for( neuron_number = 0; neuron_number < networkDimension-1; ++neuron_number){
+
+		for( source_neuron_number = 0; source_neuron_number < networkDimension-1; ++source_neuron_number){
+
+            neuron_value_array[neuron_number]+= networkWeights[computeWeightIndex(source_neuron_number+1, neuron_number+1)] * neuronOutput[source_neuron_number+1];
+        }
+    }
+
+    for(int i =0; i< networkDimension-1; i++){
+        neuronOutput[i+1]=neuron_value_array[i];
+    }
+}
+
+
+/* --------------------------------------------------
+
+    wilsonBoundNetworkOutputs
+    Adds .5 to both outputs so that they are between 0 and 1
+    Also runs a check incase they become slightly out of bounds to squish the values to 0 or 1
+
+  */
+
+
+void Network::wilsonBoundNetworkOutputs( void){
+
+        networkOutputs[0]=networkOutputs[0] + .5;
+        networkOutputs[1]=networkOutputs[1] +.5;
+        if(networkOutputs[0]<0 || networkOutputs[1]>.9998)
+        {
+            networkOutputs[0]=0;
+        }
+        if(networkOutputs[1]<0 || networkOutputs[0]>.9998)
+        {
+            networkOutputs[1]=0;
+        }
+}
+
+
 
 
 /* --------------------------------------------------
@@ -374,14 +477,14 @@ void Network::copyNetworkInputsToInputNeuronOutputs( void )
 
 void Network::setNetworkOuput( void )
 {
-    fprintf(logFile, "4. setNetworkOutput()\n");
+    //fprintf(logFile, "4. setNetworkOutput()\n");
 	int i;
 
 	for(i = 0; i< numberOfOutputs; ++i) {
 		networkOutputs[i] = neuronOutput[numberOfInputs + numberOfInterNeurons + i];
-        fprintf(logFile, "networkOutput[%d] := neuronOutput[%d](%.4f)\n", i+1,
-               numberOfInputs + numberOfInterNeurons + i+1,
-               neuronOutput[numberOfInputs + numberOfInterNeurons + i]);
+       //fprintf(logFile, "networkOutput[%d] := neuronOutput[%d](%.4f)\n", i+1,
+            //  numberOfInputs + numberOfInterNeurons + i+1,
+            //  neuronOutput[numberOfInputs + numberOfInterNeurons + i]);
 //printf("* %d ",numberOfInputs + numberOfInterNeurons + i);
 //printf("* %lf ",networkNeuronOutput[numberOfInputs + numberOfInterNeurons -1 + i]);
 
@@ -400,12 +503,12 @@ void Network::setNetworkOuput( void )
 
 void Network::copyNeuronActivationsToNeuronOutputs( void )
 {
-    fprintf(logFile, "2. copyNeuronActivationsToNeuronOutputs() (WARN) does nothing\n");
+
 	int i;
 
     // FIXME SL: This doesn't do anything; should it copy them to neuronOutput array?
 	for(i = 0; i < networkDimension; ++i){
-		neuronActivation[i] = neuronOutput[i];
+		neuronOutput[i]=neuronActivation[i];
 //printf("%2.2lf %2.2lf | ",networkNeuronOutput[i] , networkNeuronActivation[i]);
 	}
 //printf("\n");
@@ -820,11 +923,13 @@ void Network::printNetworkOuput( void )
 */
 void Network::cycleNetwork( void )
 {
+
     fprintf(logFile, "***** cycleNetwork\n");
-    wilsonOscillatorActivation();
-//	networkActivation( );						// perform adjusted matrix multiplication of the weights and current network state
-//	setNetworkNeuronOutput( );					// Transform activations into outputs and copy
-	copyNeuronActivationsToNeuronOutputs( );
+
+	networkActivation( );						// perform adjusted matrix multiplication of the weights and current network state//
+//	setNetworkNeuronOutput( );
+// Transform activations into outputs and copy
+    copyNeuronActivationsToNeuronOutputs( );
 	thresholdNeuronOutputs( );					// Transform activations into outputs following hard threshold
 	setNetworkOuput( );							// Copy the network output to the output array *+* consider moving this call out of the function to allow network "settling time" before external functions have access to the network output
 
