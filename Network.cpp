@@ -65,7 +65,8 @@ Network::Network(int inputs, int interneurons, int outputs, char * out_file_name
 
 Network::Network(std::string file_name) {
 
-	openLogFile();
+    //openLogFile();
+	openMotorOutputFile();
 
 	int error = 0;
 
@@ -221,10 +222,11 @@ void printDifferences(double* beforeMatrix, double* afterMatrix, int dimension) 
 
 /* --------------------------------------------------
 
-  wilsonOscillatorActivation
-  Takes the weights from the current neural network(Wilson.txt) and applies recurrent matrix multiplication
-  to oscillate the values of two motor neurons.
-  The output neurons oscillate between 0 - 1 to represent two sinusoids out of phase by half a full cycle.
+  wilsonCycleNetwork
+  Similar to the cycleNetwork function however use different functions:
+  copyNeuronActivationsToNeuronOutputs(), wilsonActivation(), setNetworkOutput(), and
+  wilsonBoundNetworkOutputs().
+  Each call to wilsonCycleNetwork is 1 timestep.
 
   */
 void Network::wilsonCycleNetwork(void)
@@ -232,6 +234,7 @@ void Network::wilsonCycleNetwork(void)
     //Uses neuron activation values to start the oscillator at time step 0
     if(timestep==0){
         copyNeuronActivationsToNeuronOutputs();
+        fprintf(logFile, "Timestep Motor A Motor B\n");
     }
 
     //Calculates the recurrent matrix multiplication sums to get the neuron outputs
@@ -315,10 +318,12 @@ for(timestep; timestep < endtimestep ; timestep++){
   */
 
 void Network::wilsonActivation (void){
-    int neuron_number, source_neuron_number;
 
+    int neuron_number, source_neuron_number;
+    //dynamically allocate array to hold neuron sums
     double * neuron_value_array= new double [networkDimension-1];
 
+    //multiplies the network weight matrix by previous neuron outputs and stores the values in the neuron_value_array
     for( neuron_number = 0; neuron_number < networkDimension-1; ++neuron_number){
 
 		for( source_neuron_number = 0; source_neuron_number < networkDimension-1; ++source_neuron_number){
@@ -327,6 +332,7 @@ void Network::wilsonActivation (void){
         }
     }
 
+    //sets the neuron outputs to the sum calculated by the matrix multiplication
     for(int i =0; i< networkDimension-1; i++){
         neuronOutput[i+1]=neuron_value_array[i];
     }

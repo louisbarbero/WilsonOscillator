@@ -16,12 +16,12 @@
 #include <algorithm>
 #include <windows.h>                    //New: NEEDED FOR SLEEP FUNCTION
 using namespace std;
-
+const int numOfTimesteps=300;
 int main(int argc, char* argv[])
 {
 
     Network Willy("Wilson.txt");
-    for(int i = 0; i< 300; i++)
+    for(int i = 0; i< numOfTimesteps; i++)
     Willy.wilsonCycleNetwork();
 
 
