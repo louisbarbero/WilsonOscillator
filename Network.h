@@ -37,6 +37,9 @@ private:
 	int numberOfInterNeurons;
 	int networkDimension;
     int timestep;
+    double highestVal;
+    double frequency;
+    double lowFrequency;
 
 	double neuronActivation[MAX_NET_DIMENSION];		// Individual neurons have individual activation levels that are tracked through timesteps an are not visibile as output ( transformed to output by a function)
 	double neuronOutput[MAX_NET_DIMENSION];			// The output of individual neurons, used as inputs to the other neurons in the network throught the connection weights matrix
@@ -91,11 +94,15 @@ private:
 	void readMultipleRowsFromFile(FILE* fp, double* array, double defaultVal);
 public:
 	void wilsonCycleNetwork(void);
+	float getFrequency(void);
+	void setFrequency(void);
 	void cycleNetwork( void );
 	void cycleNetworkSquash(  double offset, double expSlope );
 	void cycleNetworkNormalizeHebbianLearning( void );
 	void printNetworkOuput( void );
 	void printNetworkOutputState( void );
+	void setSelfNeuronWeight(double interneuronA_weight, double interneuronB_weight,double motorA_weight,double motorB_weight);
+	void setInterNeuronToMotorWeight(double interneuronA_weight, double interneuronB_weight);
 	void setNetworkWeightsDiagonalRange( double value, int start_row_col, int end_row_col );
 	void setNetworkWeightsUpperLowerTriangleAndDiagonal( double diagonal_value, double upper_triangle_value, double lower_triangle_value);
 	void setNetworkWeightsRectangle( double value, int start_row, int end_row, int start_column, int end_column );

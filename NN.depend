@@ -1,0 +1,73 @@
+# depslib dependency file v1.0
+1553572249 source:c:\users\louie\desktop\neuraln\network.cpp
+	"stdafx.h"
+	"Network.h"
+	<stdio.h>
+	<math.h>
+	<algorithm>
+	<string>
+	<iostream>
+	<vector>
+
+1552181387 c:\users\louie\desktop\neuraln\stdafx.h
+
+1552181387 c:\users\louie\desktop\neuraln\network.h
+	<stdio.h>
+	<string>
+	<vector>
+
+1553586239 source:c:\users\louie\desktop\neuraln\singlematrixnetwork.cpp
+	"stdafx.h"
+	"Network.h"
+	<cmath>
+	<math.h>
+	<stdio.h>
+	<string>
+	<sstream>
+	<fstream>
+	<iostream>
+	<vector>
+	<iterator>
+	<algorithm>
+	<windows.h>
+
+1552181387 source:c:\users\louie\desktop\neuraln\stdafx.cpp
+	"stdafx.h"
+
+1558448826 source:c:\users\louie\desktop\neuraln\nn\network.cpp
+	"stdafx.h"
+	"Network.h"
+	<stdio.h>
+	<iomanip>
+	<math.h>
+	<algorithm>
+	<string>
+	<iostream>
+	<vector>
+
+1552181387 c:\users\louie\desktop\neuraln\nn\stdafx.h
+
+1558430014 c:\users\louie\desktop\neuraln\nn\network.h
+	<stdio.h>
+	<string>
+	<vector>
+
+1552181387 source:c:\users\louie\desktop\neuraln\nn\stdafx.cpp
+	"stdafx.h"
+
+1558448616 source:c:\users\louie\desktop\neuraln\nn\singlematrixnetwork.cpp
+	"stdafx.h"
+	"Network.h"
+	<iomanip>
+	<cmath>
+	<math.h>
+	<stdio.h>
+	<string>
+	<sstream>
+	<fstream>
+	<iostream>
+	<vector>
+	<iterator>
+	<algorithm>
+	<windows.h>
+

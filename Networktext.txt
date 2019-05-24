@@ -247,9 +247,8 @@ void Network::wilsonCycleNetwork(void)
     timestep++;
     if(timestep==1000)
         timestep=0;
+    fprintf(logFile, "%d %.4f %.4f\n", timestep, networkOutputs[0], networkOutputs[1]);
     cout << setprecision(4);
-    fprintf(logFile, "%d %.4f %.4f\n", timestep, networkOutputs[0]+.5, networkOutputs[1]+.5);
-
 
 }
 
@@ -276,7 +275,6 @@ void Network::wilsonActivation (void){
             neuron_value_array[neuron_number]+= networkWeights[computeWeightIndex(source_neuron_number+1, neuron_number+1)] * neuronOutput[source_neuron_number+1];
         }
     }
-        //Activation will apply zero crossing algorithm to produce frequency value to determine the oscillation frequency
         if(neuronOutput[1]<0 && neuron_value_array[0]>0)
         {
             frequency++;
@@ -294,8 +292,9 @@ void Network::wilsonActivation (void){
 /* --------------------------------------------------
 
     wilsonBoundNetworkOutputs
-    Runs a check incase they become slightly out of bounds to squish the values to 0 or 1 for hexapod robot input
-    Lyxnmotion A-Pod Hexapod input to servos cannot be negative
+    Adds .5 to both outputs so that they are between 0 and 1
+    Also runs a check incase they become slightly out of bounds to squish the values to 0 or 1
+
   */
 
 
@@ -303,22 +302,16 @@ void Network::wilsonBoundNetworkOutputs( void){
 
         networkOutputs[0]=networkOutputs[0];
         networkOutputs[1]=networkOutputs[1];
-        if(networkOutputs[0]<0 || networkOutputs[1]>.5)
+        if(networkOutputs[0]<-0.5 || networkOutputs[1]>.9998)
         {
-            networkOutputs[0]=0;
+            networkOutputs[0]=-0.5;
         }
-        if(networkOutputs[1]<0 || networkOutputs[0]>.5)
+        if(networkOutputs[1]<-0.5 || networkOutputs[0]>.9998)
         {
-            networkOutputs[1]=0;
+            networkOutputs[1]=-0.5;
         }
 }
-/* --------------------------------------------------
 
-    getFrequency
-    Used for analysis for 1000 timesteps when cycling the wilson oscillator
-    Takes the value of the zero cross algorithm named frequency and divides it by number of timesteps
-    Returns a float value of the average frequency
-  */
 
 float Network::getFrequency( void){
     float current_freq=1000/frequency;
